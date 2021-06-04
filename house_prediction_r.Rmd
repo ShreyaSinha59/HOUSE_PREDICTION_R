@@ -1,0 +1,345 @@
+---
+title: "House_Prediction"
+output: word_document
+---
+
+1. Seperate x_train and y32222222
+2. https://stackoverflow.com/questions/16961921/plot-data-in-descending-order-as-appears-in-data-frame
+3.https://www.kaggle.com/dgawlik/house-prices-eda 
+4.https://cran.r-project.org/web/packages/dlookr/vignettes/transformation.html
+5.http://www.sthda.com/english/wiki/visualize-correlation-matrix-using-correlogram
+6.https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html
+
+```{r}
+train=read.csv("C://Users//sherr//Desktop//KAGGLE//train.csv")
+test=read.csv("C://Users//sherr//Desktop//KAGGLE//test.csv")
+```
+
+```{r}
+library(dplyr)
+```
+
+
+
+```{r}
+str(train)
+```
+```{r}
+str(test)
+
+```
+
+# TO CHECK DATA TYPE PROPORTION
+```{r}
+library(ggplot2)
+data_types <- function(frame) {
+  res <- lapply(frame, class)
+  res_frame <- data.frame(unlist(res))
+  
+  
+ 
+  print(res_frame)
+  
+  print(ggplot(data=res_frame,aes(x=unlist.res.))+
+    geom_bar( fill="steelblue") +
+    xlab("data types")+ggtitle("Plot of datatypes in training data types")+
+    geom_text(stat='count', aes(label=..count..),        vjust=1.4,color="white")) 
+  
+    #geom_text(aes(label=unlist.res.,vjust=1.6,color="white"))
+} 
+
+
+```
+
+
+
+
+
+
+
+
+
+
+# TO CHECK DATATYPE OF TRAIN AND TEST SET
+
+```{r}
+
+library(ggplot2)
+data_types <- function(frame,nam) {
+  res <- lapply(frame, class)
+  res_frame <- data.frame(unlist(res))
+  
+  
+ 
+  
+  
+  ggplot(data=res_frame,aes(x=unlist.res.))+
+    geom_bar( fill="steelblue") +
+    xlab("data types")+ggtitle(paste0(" Plot of datatypes of data types of ",nam))+
+    geom_text(stat='count', aes(label=..count..), vjust=1.4,color="white") 
+  
+    #geom_text(aes(label=unlist.res.,vjust=1.6,color="white"))
+} 
+
+
+```
+
+
+```{r}
+data_types(train,"train")
+```
+```{r}
+data_types(test,"test")
+```
+
+
+# DESCRIPTION OF DATAFRAME
+
+# TO CHECK WHICH VALUES ARE GREATER THAN 0
+```{r}
+missing_values_check=function(dataframe){
+  na_count_miss1 <-sapply(dataframe,function(x) sum(is.na(x)))
+  na_count_miss1 <- data.frame(na_count_miss1)
+  na_count_miss1=na_count_miss1%>%
+    filter(na_count_miss1>0)
+  
+  na_count2 <- cbind(newColName = rownames(na_count_miss1), na_count_miss1)
+  rownames(na_count2) <- 1:nrow(na_count2)
+  count_missing <- na_count2[order(-na_count2$na_count),]
+  print(count_missing)
+  }
+#na_count_miss = na_count_miss[order(-na_count_miss$na_count_miss),]
+  
+```
+
+
+
+```{r}
+missing_values_check(train)
+```
+
+```{r}
+
+library(naniar)
+gg_miss_upset(train, order.by = "freq", nsets = 12)
+```
+This plot represents the descending order of missing values. Pool_QA has highest missing value followed bt MissFeature_NA,AlleyNa etc
+
+Missing Values are more than 200 in 6 columns which are 1/7th of the total values. Hence using them in our analysis would not be useful. However to confirm lets just make a correlation plot for their relative importance
+
+
+
+
+
+# PERCENTAGE OF MISSING
+
+```{r}
+missing_values_percentage_check=function(dataframe){
+  na_count_miss1 <-sapply(dataframe,function(x) sum(is.na(x))/1460)
+  na_count_miss1 <- data.frame(na_count_miss1)
+  na_count_miss1=na_count_miss1%>%
+    filter(na_count_miss1>0)
+  
+  na_count2 <- cbind(newColName = rownames(na_count_miss1), na_count_miss1)
+  rownames(na_count2) <- 1:nrow(na_count2)
+  count_missing <- na_count2[order(-na_count2$na_count),]
+  print(count_missing)
+  }
+```
+
+```{r}
+perc_miss=missing_values_percentage_check(train)
+```
+One of the most Notable thing our dependent value y does not have missing values
+
+
+
+
+
+```{r}
+
+#q <- ggplot(perc_miss, aes(x=perc_miss$newColName,y=perc_miss$na_count_miss1))+geom_bar() 
+  
+q <- ggplot(perc_miss, aes(x=reorder(newColName,-na_count_miss1),y=na_count_miss1),las=2)+geom_col()+
+  theme(axis.text.x = element_text(angle = 90))+ggtitle("percentages of missing value")+xlab("Features")+ylab("count")
+  #scale_x_discrete(breaks=1:nrow(perc_miss),labels=perc_miss$newColName)
+q
+```
+
+
+
+
+
+
+
+
+
+POOLQC,Missfeature ,Alley,Fence are all greater than 80%
+
+```{r}
+train_data= subset(train,select=-c(PoolQC,MiscFeature,Alley,Fence))
+print(train_data)
+
+```
+```{r}
+test_data= subset(test,select=-c(PoolQC,MiscFeature,Alley,Fence))
+print(test_data)
+```
+
+
+# MISS FOREST - FILLING MISSING 
+
+```{r}
+
+
+library(woeBinning) # 'germancredit' data
+library(PRROC) # ROC curves in data frames
+library(tidyverse) # everything
+library(imputeMissings) # median/mode imputation
+library(visdat) # missingness plots
+library(doParallel) # parallel missForest
+library(doRNG) # reproducible parallel results
+library(gridExtra) # combining graphs
+library(randomForest) # random forests
+library(missForest) # ...
+library(kableExtra) # pretty tables
+
+options(scipen = 999) # no scientific notation
+
+RNGkind(kind = "Mersenne-Twister", 
+        normal.kind = "Inversion", 
+        sample.kind = "Rejection") # because different versions of R giving different RNG results annoys me
+
+theme_set(theme_light()) # ggplot theme
+```
+
+
+```{r}
+
+```
+
+
+
+AS WE WANT DATA IN FORM OF FACTORS IN TO APPLY MISSFOREST . HENCE WE CHECK IF OUR DATA HAS ANY FACTORS
+```{r}
+f <- sapply(train_data, is.factor)
+
+which(f)
+```
+
+```{r}
+library(dplyr)
+train_data <- train_data %>% 
+  mutate_if(is.character, as.factor)
+test_data <- test_data %>% 
+  mutate_if(is.character, as.factor)
+```
+
+```{r}
+imputed_train = missForest(train_data)$ximp
+
+```
+```{r}
+imputed_test=  missForest(test_data)$ximp
+```
+
+```{r}
+imputed_train
+```
+```{r}
+gg_miss_upset(imputed_train, order.by = "freq", nsets = 12)
+
+```
+
+
+
+```{r}
+#gg_miss_upset(imputed_test, order.by = "freq", nsets = 12)
+```
+hence both shows no missing values
+
+
+# STANDARDIZATION
+
+# VISUALIZATIONS
+
+```{r}
+library("dplyr")                                     # Load dplyr
+
+data_num2 <- select_if(imputed_train, is.numeric)             # Subset numeric columns with dplyr
+data_num2
+
+    
+```
+
+
+
+# STANDARDIZATION  AND VISUALIZATION
+
+
+```{r}
+ggplot(data_num2, aes(x=data_num2[,"SalePrice"]))+
+    geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+                   binwidth=.5,
+                   colour="black", fill="white") +geom_density(alpha=.2, fill="#FF6666")+
+              ggtitle(paste0(" Plot of distribution of response variable ",colnames(data_num2)[i]))+xlab("values")
+```
+
+There is Skewness in response variable Sales Prices 
+
+```{r}
+for (i in 1:length(data_num2)){
+    print(ggplot(data_num2, aes(x=data_num2[,i]))+
+    geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+                   binwidth=.5,
+                   colour="black", fill="white") +
+    geom_density(alpha=.2, fill="#FF6666")+ggtitle(paste0(" Plot of distribution of ",colnames(data_num2)[i]))+xlab("values"))
+  }
+  
+```
+
+All our explanatory variables are not normally distributed. 
+
+
+
+# CORRELATION PLOT
+
+```{r}
+
+library(corrplot)
+corrplot(cor(data_num2), method="color",tl.cex = 0.5)
+# tl.cex helped change the size of axis labels
+```
+
+
+```{r}
+library(dplyr)
+
+correl=corr_dat %>%
+  select("SalePrice")
+```
+
+
+
+```{r}
+library(formattable)
+corr_data2=formattable(corr_dat, list(
+  SalePrice = formatter("span", 
+                         style = ~style(font.weight = "bold", color = 
+                                          ifelse(SalePrice > 0.5,"red",
+                                                 ifelse(SalePrice< -0.5,"green",NA
+                                                        ))))))
+corr_data2
+```
+
+```{r}
+library(formattable)
+formattable(correl, list(
+  SalePrice = formatter("span", 
+                         style = ~style(font.weight = "bold", color = 
+                                          ifelse(SalePrice > 0.5,"red",
+                                                 ifelse(SalePrice< -0.5,"green",NA
+                                                        ))))))
+
+```
+
