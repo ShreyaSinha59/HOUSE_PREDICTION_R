@@ -3,7 +3,7 @@ title: "House_Prediction"
 output: word_document
 ---
 
-1. Seperate x_train and y32222222
+1. Seperate x_train and y
 2. https://stackoverflow.com/questions/16961921/plot-data-in-descending-order-as-appears-in-data-frame
 3.https://www.kaggle.com/dgawlik/house-prices-eda 
 4.https://cran.r-project.org/web/packages/dlookr/vignettes/transformation.html
