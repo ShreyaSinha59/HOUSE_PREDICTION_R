@@ -3,6 +3,7 @@ title: "House_Prediction"
 output: word_document
 ---
 
+This is the starting
 TO DO AND IMPORTANT LINKS:
 1. Seperate x_train and y
 2. https://stackoverflow.com/questions/16961921/plot-data-in-descending-order-as-appears-in-data-frame
@@ -10,10 +11,14 @@ TO DO AND IMPORTANT LINKS:
 4.https://cran.r-project.org/web/packages/dlookr/vignettes/transformation.html
 5.http://www.sthda.com/english/wiki/visualize-correlation-matrix-using-correlogram
 6.https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html
+7.https://towardsdatascience.com/missing-value-visualization-with-tidyverse-in-r-a9b0fefd2246
+8.https://www.kaggle.com/nikitagrec/house-prices-clustering
+
 
 ```{r}
 train=read.csv("C://Users//sherr//Desktop//KAGGLE//train.csv")
 test=read.csv("C://Users//sherr//Desktop//KAGGLE//test.csv")
+train
 ```
 
 ```{r}
