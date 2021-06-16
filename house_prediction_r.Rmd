@@ -3,7 +3,7 @@ title: "House_Prediction"
 output: word_document
 ---
 
-This is the starting
+This is the beginning
 TO DO AND IMPORTANT LINKS:
 1. Seperate x_train and y
 2. https://stackoverflow.com/questions/16961921/plot-data-in-descending-order-as-appears-in-data-frame
